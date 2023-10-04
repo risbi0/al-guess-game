@@ -123,7 +123,7 @@ function App() {
 			gameRunning && !gameEnd &&
 			<>
 				<div id='progress-bar' style={{width: `${progress}%`}}></div>
-				<div id='answer-display'>Round {rounds} of 10</div>
+				<div id='answer-display'>{displayState === 'hidden' ? `Round ${rounds} of 10` : shipName}</div>
 				<div id='container'>
 					<img style={imageStyles}/>
 				</div>
