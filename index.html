@@ -13,9 +13,9 @@
     <script type="module" src="/src/main.jsx"></script>
 		<script>
       document.addEventListener('DOMContentLoaded', function() {
-        firebase.analytics();
-        try {
-          let app = firebase.app();
+				try {
+					let app = firebase.app();
+					firebase.analytics();
           let features = [
             'analytics'
           ].filter(feature => typeof app[feature] === 'function');
