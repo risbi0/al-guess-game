@@ -10,6 +10,7 @@ function App() {
 	const [gameRunning, setGameRunning] = useState()
 	const [gameEnd, setGameEnd] = useState()
 	const [displayState, setDisplayState] = useState('hidden')
+	const [isCorrectAnswer, setIsCorrectAnswer] = useState()
 	const [score, setScore] = useState()
 	const [rounds, setRounds] = useState()
 	const [progress, setProgress] = useState(0) // progress bar
@@ -27,6 +28,7 @@ function App() {
 		setDisplayState('unhidden')
 		delay().then(() => {
 			input.current.value = ''
+			setIsCorrectAnswer()
 			setDisplayState('hidden')
 			setEventEnabled(true)
 			setProgress(0)
@@ -37,7 +39,9 @@ function App() {
 	function checkAnswer() {
 		const answer = input.current.value.toLowerCase()
 		if (eventEnabled && (answer === shipName.toLowerCase() || altNames.includes(answer))) {
+			// correct answer
 			setScore((score) => score + 1)
+			setIsCorrectAnswer(true)
 			clearInterval(loopProgress.current)
 			clearTimeout(deadline.current)
 			displayCorrectAnswer()
@@ -73,7 +77,9 @@ function App() {
 		}, interval)
 
 		deadline.current = setTimeout(() => {
+			// not answered
 			clearInterval(loopProgress.current)
+			setIsCorrectAnswer(false)
 			displayCorrectAnswer()
 		}, roundDuration)
 	}
@@ -115,7 +121,17 @@ function App() {
 			gameRunning && !gameEnd &&
 			<>
 				<div id='progress-bar' style={{width: `${progress}%`}}></div>
-				<div id='answer-display'>{displayState === 'hidden' ? `Round ${rounds} of 10` : shipName}</div>
+				<div
+					id='answer-display'
+					className={
+						displayState === 'unhidden' && isCorrectAnswer
+							? 'correct-ans-glow'
+							: displayState === 'unhidden' && !isCorrectAnswer
+								? 'wrong-ans-glow'
+								: ''
+					}>
+						{displayState === 'hidden' ? `Round ${rounds} of 10` : shipName}
+				</div>
 				<div id='container'>
 					<img src={`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/${displayState}/${shipName.replace(' ', '%20')}.png`}/>
 				</div>

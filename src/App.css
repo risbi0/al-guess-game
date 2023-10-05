@@ -82,6 +82,13 @@ button:hover {
 	font-weight: bold;
 }
 
+.correct-ans-glow {
+	box-shadow: 0 0 10px green;
+}
+.wrong-ans-glow {
+	box-shadow: 0 0 10px red;
+}
+
 #container {
 	display: flex;
 	flex-direction: column;
