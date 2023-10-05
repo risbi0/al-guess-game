@@ -107,7 +107,7 @@ function App() {
 		{
 			!gameRunning && !gameEnd &&
 			<>
-				<div id='answer-display'>Lorem Ipsum</div>
+				<div id='answer-display'>Azur Lane Guessing Game</div>
 				<div id='container'>
 					<p>Guess the Azur Lane character by its silhouette!</p>
 					<p>10 rounds with each round having 10 second limit.</p>
