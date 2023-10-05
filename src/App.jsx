@@ -51,7 +51,7 @@ function App() {
 	function newHiddenShip() {
 		let newShipPicked = false, randShipIndex
 		while (!newShipPicked) {
-			randShipIndex = Math.floor(Math.random() * (names.length - 0 + 1)) + 0
+			randShipIndex = Math.floor(Math.random() * names.length)
 
 			if (!pickedIndices.includes(randShipIndex)) {
 				pickedIndices.push(randShipIndex)
