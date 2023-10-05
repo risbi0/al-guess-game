@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from 'react'
 import names from './assets/names.json'
 import './App.css'
@@ -11,7 +12,9 @@ function App() {
 	const [gameEnd, setGameEnd] = useState()
 	const [displayState, setDisplayState] = useState('hidden')
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState()
+	const [answerLog, setAnswerLog] = useState([])
 	const [score, setScore] = useState()
+	const [avgSpeed, setAvgSpeed] = useState()
 	const [rounds, setRounds] = useState()
 	const [progress, setProgress] = useState(0) // progress bar
 	const [shipName, setShipName] = useState('') // main ship name
@@ -78,19 +81,36 @@ function App() {
 
 		deadline.current = setTimeout(() => {
 			// not answered
-			clearInterval(loopProgress.current)
 			setIsCorrectAnswer(false)
+			clearInterval(loopProgress.current)
 			displayCorrectAnswer()
 		}, roundDuration)
 	}
 
 	function startGame() {
 		setScore(0)
+		setAvgSpeed(0)
 		setRounds(0)
+		setAnswerLog([])
 		setGameRunning(true)
 		setGameEnd(false)
 		newGameRound()
 	}
+
+	useEffect(() => {
+		// log answer details
+		if (isCorrectAnswer !== undefined) {
+			setAnswerLog(() => {
+				answerLog.push({
+					'isCorrect': isCorrectAnswer,
+					'name': shipName,
+					'answer': input.current.value,
+					'speed': Math.round(progress * 10) / 100
+				})
+				return answerLog
+			})
+		}
+	}, [isCorrectAnswer])
 
 	useEffect(() => {
 		// end round
@@ -99,6 +119,10 @@ function App() {
 			clearTimeout(deadline.current)
 			setGameRunning(false)
 			setGameEnd(true)
+			// calculate avg speed
+			const getAllSpeed = answerLog.map(obj => obj['speed'])
+			const addAllSpeed = getAllSpeed.reduce((total, current) => total + current)
+			setAvgSpeed(Math.round(addAllSpeed * 10) / 100)
 		}
 	}, [rounds])
 
@@ -142,9 +166,29 @@ function App() {
 			!gameRunning && gameEnd &&
 			<>
 				<div id='score'>
-					<p>SCORE</p>
-					<p>{score} / 10</p>
+					<p>Score: {score} / 10</p>
+					<p>Avg. Answer Speed: {avgSpeed}s</p>
 				</div>
+				<table>
+					<thead>
+						<tr>
+							<th></th>
+							<th>Name</th>
+							<th>Answer / Speed</th>
+						</tr>
+					</thead>
+					<tbody>
+						{answerLog.map((answer, index) => (
+							<tr key={index}>
+								<td>{answer.isCorrect ? '✅' : '❌'}</td>
+								<td>{answer.name}</td>
+								<td style={answer.isCorrect ? {textAlign: 'center'} : {}}>
+									{answer.isCorrect ? `${answer.speed}s` : answer.answer}
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
 				<button onClick={startGame}>PLAY AGAIN</button>
 			</>
 		}

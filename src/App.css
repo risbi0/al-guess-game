@@ -124,8 +124,11 @@ button:hover {
 }
 
 #score {
+	background-color: var(--white-bg);
 	margin-top: 30px;
 	margin-bottom: 20px;
+	padding: 5px 30px;
+	border-radius: 5px;
 	font-size: 36px;
 	font-weight: bold;
 }
@@ -133,6 +136,44 @@ button:hover {
 #score p {
 	text-align: center;
 	color: var(--black-f);
+}
+
+table {
+	background-color: var(--white-bg);
+	color: var(--black-f);
+	border-radius: 5px;
+	margin-top: 20px;
+	margin-bottom: 40px;
+	border-collapse: collapse;
+	width: 500px;
+}
+
+tr:nth-child(odd):not(thead tr)   {
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+th:nth-child(3), td:nth-child(3) {
+	border-left: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+th, td {
+	padding: 5px 10px;
+}
+
+th {
+	font-size: 22px;
+}
+
+th:nth-child(2) {
+	width: 40%;
+}
+
+th:nth-child(3) {
+	width: 50%;
+}
+
+td {
+	font-size: 18px;
 }
 
 @media only screen and (max-width: 640px) {
@@ -143,6 +184,10 @@ button:hover {
 
 	#container {
 		height: 90vw;
+		width: 90vw;
+	}
+
+	table {
 		width: 90vw;
 	}
 }
