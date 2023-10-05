@@ -137,6 +137,7 @@ function App() {
 					<p>10 rounds with each round having 10 second limit.</p>
 					<p>No retrofit skins and skins in general.</p>
 					<p>Some characters have nicknames which are also correct.</p>
+					<p>Also includes sirens.</p>
 				</div>
 				<button onClick={startGame}>START</button>
 			</>
