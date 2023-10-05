@@ -135,7 +135,7 @@ function App() {
 				<div id='container'>
 					<img src={`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/${displayState}/${shipName.replace(' ', '%20')}.png`}/>
 				</div>
-				<input type='text' ref={input} onInput={checkAnswer} placeholder='Who?'></input>
+				<input type='text' ref={input} onInput={checkAnswer} placeholder='Who?' maxLength='30'></input>
 			</>
 		}
 		{
