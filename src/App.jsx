@@ -18,13 +18,6 @@ function App() {
 	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 
   const pickedIndices = [] // stores indices of shown ships
-  const imageStyles = {
-    backgroundImage: `url("https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/${displayState}/${shipName.replace(' ', '%20')}.png")`,
-		backgroundRepeat: 'no-repeat',
-		backgroundSize: 'contain',
-		width: '100%',
-		height: '100%'
-  }
 
 	const delay = () => new Promise(resolve => setTimeout(resolve, 3000))
 
@@ -108,13 +101,12 @@ function App() {
 		{
 			!gameRunning && !gameEnd &&
 			<>
-				<div id='answer-display'>Azur Lane Guessing Game</div>
+				<div id='answer-display'>Lorem Ipsum</div>
 				<div id='container'>
-					<ul>
-						<li>Guess the Azur Lane character by its silhouette.</li>
-						<li>10 rounds with each round having 10 second limit.</li>
-						<li>Some characters have nicknames which are also correct.</li>
-					</ul>
+					<p>Guess the Azur Lane character by its silhouette!</p>
+					<p>10 rounds with each round having 10 second limit.</p>
+					<p>No retrofit skins and skins in general.</p>
+					<p>Some characters have nicknames which are also correct.</p>
 				</div>
 				<button onClick={startGame}>START</button>
 			</>
@@ -125,7 +117,7 @@ function App() {
 				<div id='progress-bar' style={{width: `${progress}%`}}></div>
 				<div id='answer-display'>{displayState === 'hidden' ? `Round ${rounds} of 10` : shipName}</div>
 				<div id='container'>
-					<img style={imageStyles}/>
+					<img src={`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/${displayState}/${shipName.replace(' ', '%20')}.png`}/>
 				</div>
 				<input type='text' ref={input} onInput={checkAnswer} placeholder='Who?'></input>
 			</>
