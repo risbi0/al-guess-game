@@ -93,7 +93,7 @@ function App() {
 				if (img.current) {
 					img.current.src = image.src
 
-					const roundDuration = 5000
+					const roundDuration = 10000
 					const interval = 10
 					const totalSteps = roundDuration / interval
 
