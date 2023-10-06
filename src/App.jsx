@@ -4,39 +4,54 @@ import names from './assets/names.json'
 import './App.css'
 
 function App() {
+	const img = useRef()
 	const input = useRef()
 	const loopProgress = useRef() // for animating progress bar
 	const deadline = useRef() // deadline for each round
 
-	const [gameRunning, setGameRunning] = useState()
-	const [gameEnd, setGameEnd] = useState()
-	const [displayState, setDisplayState] = useState('hidden')
-	const [isCorrectAnswer, setIsCorrectAnswer] = useState()
-	const [answerLog, setAnswerLog] = useState([])
-	const [score, setScore] = useState()
-	const [avgSpeed, setAvgSpeed] = useState()
-	const [rounds, setRounds] = useState()
-	const [progress, setProgress] = useState(0) // progress bar
+	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 	const [shipName, setShipName] = useState('') // main ship name
 	const [altNames, setAltNames] = useState() // alt ship names
-	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
+	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
+	const [gameRunning, setGameRunning] = useState()
+	const [gameEnd, setGameEnd] = useState()
+  const [pickedIndices, setPickedIndices] = useState([]) // stores indices of shown ships
+	const [rounds, setRounds] = useState()
+	const [progress, setProgress] = useState(0) // progress bar
+	const [score, setScore] = useState()
+	const [avgSpeed, setAvgSpeed] = useState()
+	const [answerLog, setAnswerLog] = useState([])
 
-  const pickedIndices = [] // stores indices of shown ships
+	let shipNameLocal = ''
 
-	const delay = () => new Promise(resolve => setTimeout(resolve, 3000))
+	const delay = () => new Promise(resolve => setTimeout(resolve, 1000))
 
-	function displayCorrectAnswer() {
-		setEventEnabled(false)
-		// show unhidden ship for a sec before going to next round
-		setDisplayState('unhidden')
-		delay().then(() => {
-			input.current.value = ''
-			setIsCorrectAnswer()
-			setDisplayState('hidden')
-			setEventEnabled(true)
-			setProgress(0)
-			newGameRound()
+	function loadImage(url) {
+		return new Promise((resolve, reject) => {
+			const image = new Image()
+			image.onload = () => resolve(image)
+			image.onerror = (error) => reject(error)
+			image.src = url
 		})
+	}
+
+	function displayCorrectAnswer(isCorrect) {
+		setEventEnabled(false)
+		// TODO: do better than this thing
+		const name = isCorrect ? shipName : shipNameLocal
+		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/unhidden/${name}.png`)
+			.then((image) => {
+				img.current.src = image.src
+				setIsCorrectAnswer(isCorrect)
+				// show unhidden ship for a sec before going to next round
+				return delay()
+			})
+			.then(() => {
+				input.current.value = ''
+				setEventEnabled(true)
+				setProgress(0)
+				newGameRound()
+			})
 	}
 
 	function checkAnswer() {
@@ -44,10 +59,9 @@ function App() {
 		if (eventEnabled && (answer === shipName.toLowerCase() || altNames.includes(answer))) {
 			// correct answer
 			setScore((score) => score + 1)
-			setIsCorrectAnswer(true)
 			clearInterval(loopProgress.current)
 			clearTimeout(deadline.current)
-			displayCorrectAnswer()
+			displayCorrectAnswer(true)
 		}
 	}
 
@@ -57,49 +71,63 @@ function App() {
 			randShipIndex = Math.floor(Math.random() * names.length)
 
 			if (!pickedIndices.includes(randShipIndex)) {
-				pickedIndices.push(randShipIndex)
+				setPickedIndices((pickedIndices) => {
+					pickedIndices.push(randShipIndex)
+					return pickedIndices
+				})
 				newShipPicked = true
 			}
 		}
+		shipNameLocal = names[randShipIndex]['filename']
 		setShipName(names[randShipIndex]['filename'])
 		setAltNames(names[randShipIndex]['names'])
 	}
 
 	function newGameRound() {
 		setRounds((rounds) => rounds + 1)
+		setIsCorrectAnswer(null)
 		newHiddenShip()
 
-		const roundDuration = 5000
-		const interval = 10
-		const totalSteps = roundDuration / interval
+		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/hidden/${shipNameLocal}.png`)
+			.then((image) => {
+				if (img.current) {
+					img.current.src = image.src
 
-		loopProgress.current = setInterval(() => {
-			if (progress < 100) {
-				setProgress((prevProgress) => prevProgress + (100 / totalSteps))
-			}
-		}, interval)
+					const roundDuration = 5000
+					const interval = 10
+					const totalSteps = roundDuration / interval
 
-		deadline.current = setTimeout(() => {
-			// not answered
-			setIsCorrectAnswer(false)
-			clearInterval(loopProgress.current)
-			displayCorrectAnswer()
-		}, roundDuration)
+					loopProgress.current = setInterval(() => {
+						if (progress < 100) {
+							setProgress((prevProgress) => prevProgress + (100 / totalSteps))
+						}
+					}, interval)
+
+					deadline.current = setTimeout(() => {
+						// not answered
+						clearInterval(loopProgress.current)
+						displayCorrectAnswer(false)
+					}, roundDuration)
+				}
+			})
 	}
 
 	function startGame() {
-		setScore(0)
-		setAvgSpeed(0)
-		setRounds(0)
-		setAnswerLog([])
+		// reinit states
 		setGameRunning(true)
 		setGameEnd(false)
+		setRounds(0)
+		setPickedIndices([])
+		setScore(0)
+		setAvgSpeed(0)
+		setAnswerLog([])
+
 		newGameRound()
 	}
 
 	useEffect(() => {
 		// log answer details
-		if (isCorrectAnswer !== undefined) {
+		if (isCorrectAnswer !== null) {
 			setAnswerLog(() => {
 				answerLog.push({
 					'isCorrect': isCorrectAnswer,
@@ -110,9 +138,6 @@ function App() {
 				return answerLog
 			})
 		}
-	}, [isCorrectAnswer])
-
-	useEffect(() => {
 		// end round
 		if (rounds === 11) {
 			clearInterval(loopProgress.current)
@@ -124,7 +149,7 @@ function App() {
 			const addAllSpeed = getAllSpeed.reduce((total, current) => total + current)
 			setAvgSpeed(Math.round(addAllSpeed * 10) / 100)
 		}
-	}, [rounds])
+	}, [rounds, isCorrectAnswer])
 
   return (
     <>
@@ -149,16 +174,16 @@ function App() {
 				<div
 					id='answer-display'
 					className={
-						displayState === 'unhidden' && isCorrectAnswer
+						isCorrectAnswer !== null && isCorrectAnswer
 							? 'correct-ans-glow'
-							: displayState === 'unhidden' && !isCorrectAnswer
+							: isCorrectAnswer !== null && !isCorrectAnswer
 								? 'wrong-ans-glow'
 								: ''
 					}>
-						{displayState === 'hidden' ? `Round ${rounds} of 10` : shipName}
+						{isCorrectAnswer === null ? `Round ${rounds} of 10` : shipName}
 				</div>
 				<div id='container'>
-					<img src={`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/${displayState}/${shipName.replace(' ', '%20')}.png`}/>
+					<img ref={img} src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='/>
 				</div>
 				<input type='text' ref={input} onInput={checkAnswer} placeholder='Who?' maxLength='30'></input>
 			</>
