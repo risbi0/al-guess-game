@@ -159,7 +159,7 @@ function App() {
 				<div id='answer-display'>Azur Lane Guessing Game</div>
 				<div id='container'>
 					<p>Guess the Azur Lane character by its silhouette!</p>
-					<p>10 rounds with each round having 10 second limit.</p>
+					<p>10 rounds with each round having a 10 second limit.</p>
 					<p>No retrofit skins and skins in general.</p>
 					<p>Some characters have nicknames which are also correct.</p>
 					<p>Also includes sirens.</p>
