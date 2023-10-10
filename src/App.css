@@ -9,19 +9,21 @@
 }
 
 body {
-	height: 100%;
-	display: flex;
-	justify-content: center;
+	position: relative;
+	min-height: 100vh;
 	margin: 0;
 }
 
 input {
+	width: 250px;
+	background-color: var(--white-bg);
+	color: var(--black-f);
 	padding: 8px 16px;
 	line-height: 25px;
 	font-size: 14px;
 	font-weight: 500;
 	border: none;
-	border-radius: 5px;
+	border-radius: 5px 5px 0 0;
 	outline: none;
 }
 
@@ -54,8 +56,8 @@ button:hover {
 	background-size: cover;
 	background-position: center center;
 	background-repeat: no-repeat;
-	width: 100vw;
-	height: 100vh;
+	width: 100%;
+	height: 100%;
 }
 
 #bg:after {
@@ -123,7 +125,33 @@ button:hover {
 	background-color: var(--black-bg);
 }
 
+#suggestions {
+	max-height: 200px;
+	background-color: var(--white-bg);
+	color: var(--black-f);
+	line-height: 25px;
+	font-size: 14px;
+	font-weight: 500;
+	overflow-y: auto;
+	margin-bottom: 50px;
+}
+
+#suggestions div {
+	padding: 8px 16px;
+}
+
+#suggestions div:nth-child(odd)   {
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+#suggestions div:hover, .selected {
+	cursor: pointer;
+	background-color: rgba(0, 0, 0, 0.5) !important;
+	color: white;
+}
+
 #score {
+	box-sizing: border-box;
 	background-color: var(--white-bg);
 	margin-top: 30px;
 	margin-bottom: 20px;
@@ -187,7 +215,7 @@ td {
 		width: 90vw;
 	}
 
-	table {
+	table, #score {
 		width: 90vw;
 	}
 }

@@ -8,23 +8,33 @@ function App() {
 	const input = useRef()
 	const loopProgress = useRef() // for animating progress bar
 	const deadline = useRef() // deadline for each round
+	const optionsParent = useRef()
 
 	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 	const [shipName, setShipName] = useState('') // main ship name
-	const [altNames, setAltNames] = useState() // alt ship names
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
 	const [gameRunning, setGameRunning] = useState()
 	const [gameEnd, setGameEnd] = useState()
   const [pickedIndices, setPickedIndices] = useState([]) // stores indices of shown ships
 	const [rounds, setRounds] = useState()
 	const [progress, setProgress] = useState(0) // progress bar
+	const [suggestions, setSuggestions] = useState([])
+	const [optionIndex, setOptionIndex] = useState(-1) // for highlighting options
+
 	const [score, setScore] = useState()
 	const [avgSpeed, setAvgSpeed] = useState()
 	const [answerLog, setAnswerLog] = useState([])
 
-	let shipNameLocal = ''
-
 	const delay = () => new Promise(resolve => setTimeout(resolve, 1000))
+
+	const setInputText = (e) => input.current.value = e.target.textContent
+
+	function showSuggestions() {
+		const suggestions = names.map(i => i['filename']).filter((word) =>
+			word.toLowerCase().includes(input.current.value.toLowerCase())
+		)
+		setSuggestions(suggestions)
+	}
 
 	function loadImage(url) {
 		return new Promise((resolve, reject) => {
@@ -36,10 +46,11 @@ function App() {
 	}
 
 	function displayCorrectAnswer(isCorrect) {
+		clearInterval(loopProgress.current)
+		clearTimeout(deadline.current)
 		setEventEnabled(false)
-		// TODO: do better than this thing
-		const name = isCorrect ? shipName : shipNameLocal
-		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/unhidden/${name}.png`)
+
+		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/unhidden/${shipName}.png`)
 			.then((image) => {
 				img.current.src = image.src
 				setIsCorrectAnswer(isCorrect)
@@ -54,18 +65,61 @@ function App() {
 			})
 	}
 
-	function checkAnswer() {
-		const answer = input.current.value.toLowerCase()
-		if (eventEnabled && (answer === shipName.toLowerCase() || altNames.includes(answer))) {
-			// correct answer
-			setScore((score) => score + 1)
-			clearInterval(loopProgress.current)
-			clearTimeout(deadline.current)
-			displayCorrectAnswer(true)
-		}
+	function highlightOptions(e) {
+		if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setOptionIndex((index) => {
+				let indexOut
+				if (index < suggestions.length - 1) {
+					indexOut = index + 1
+				}  else {
+					indexOut = index
+				}
+				input.current.value = suggestions[indexOut]
+				return indexOut
+			})
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setOptionIndex((index) => {
+				let indexOut
+				if (index > 0) {
+					indexOut = index - 1
+				}  else {
+					indexOut = -1
+				}
+				input.current.value = suggestions[indexOut]
+				return indexOut
+			})
+    } else if (e.key === 'Enter' && optionIndex !== -1) {
+			submitAnswer()
+    }
 	}
 
-	function newHiddenShip() {
+	function submitAnswer() {
+		setSuggestions([])
+		setOptionIndex(-1) // reset index for option selection
+		checkAnswer()
+	}
+
+	function checkAnswer() {
+		const answer = input.current.value
+		if (eventEnabled) {
+			if (answer === shipName) {
+				// correct answer
+				setScore((score) => score + 1)
+				displayCorrectAnswer(true)
+			} else {
+				// incorrect answer
+				displayCorrectAnswer(false)
+			}
+		}
+  }
+
+	function newGameRound() {
+		setRounds((rounds) => rounds + 1)
+		setIsCorrectAnswer(null)
+
+		// pick new hidden ship
 		let newShipPicked = false, randShipIndex
 		while (!newShipPicked) {
 			randShipIndex = Math.floor(Math.random() * names.length)
@@ -78,17 +132,27 @@ function App() {
 				newShipPicked = true
 			}
 		}
-		shipNameLocal = names[randShipIndex]['filename']
 		setShipName(names[randShipIndex]['filename'])
-		setAltNames(names[randShipIndex]['names'])
 	}
 
-	function newGameRound() {
-		setRounds((rounds) => rounds + 1)
-		setIsCorrectAnswer(null)
-		newHiddenShip()
+	function startGame() {
+		// reinit states
+		setGameRunning(true)
+		setGameEnd(false)
+		setRounds(0)
+		setPickedIndices([])
+		setOptionIndex(-1)
 
-		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/hidden/${shipNameLocal}.png`)
+		setScore(0)
+		setAvgSpeed(0)
+		setAnswerLog([])
+
+		newGameRound()
+	}
+
+	useEffect(() => {
+		if (shipName) {
+			loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/hidden/${shipName}.png`)
 			.then((image) => {
 				if (img.current) {
 					img.current.src = image.src
@@ -105,25 +169,12 @@ function App() {
 
 					deadline.current = setTimeout(() => {
 						// not answered
-						clearInterval(loopProgress.current)
 						displayCorrectAnswer(false)
 					}, roundDuration)
 				}
 			})
-	}
-
-	function startGame() {
-		// reinit states
-		setGameRunning(true)
-		setGameEnd(false)
-		setRounds(0)
-		setPickedIndices([])
-		setScore(0)
-		setAvgSpeed(0)
-		setAnswerLog([])
-
-		newGameRound()
-	}
+		}
+	}, [shipName])
 
 	useEffect(() => {
 		// log answer details
@@ -185,7 +236,30 @@ function App() {
 				<div id='container'>
 					<img ref={img} src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='/>
 				</div>
-				<input type='text' ref={input} onInput={checkAnswer} placeholder='Who?' maxLength='30'></input>
+				<div>
+					<input
+						type='text'
+						ref={input}
+						onInput={showSuggestions}
+						onKeyDown={highlightOptions}
+						placeholder='Who?'
+						maxLength='30'>
+					</input>
+					{suggestions.length > 0 && (
+						<div id='suggestions' ref={optionsParent}>
+						{suggestions.map((suggestion, index) => (
+							<div
+								key={index}
+								className={index === optionIndex ? 'selected' : ''}
+								onMouseEnter={setInputText}
+								onClick={submitAnswer}
+							>
+								{suggestion}
+							</div>
+						))}
+					</div>
+					)}
+				</div>
 			</>
 		}
 		{
