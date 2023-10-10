@@ -73,10 +73,12 @@ button:hover {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	box-sizing: border-box;
 	width: 600px;
-	height: 50px;
+	height: min-content;
 	margin-top: 35px;
 	margin-bottom: 20px;
+	padding: 10px;
 	background-color: var(--white-bg);
 	color: var(--black-f);
 	border-radius: 5px;
