@@ -10,6 +10,9 @@ function App() {
 	const deadline = useRef() // deadline for each round
 	const optionsParent = useRef()
 
+	const namePool = useRef([])
+	let includeRetrofit = false, includeSkin = false
+
 	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 	const [shipName, setShipName] = useState('') // main ship name
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
@@ -26,13 +29,34 @@ function App() {
 	const [answerLog, setAnswerLog] = useState([])
 
 	const delay = () => new Promise(resolve => setTimeout(resolve, 1000))
-
 	const setInputText = (e) => input.current.value = e.target.textContent
+	const toggleRetrofit = () => includeRetrofit = !includeRetrofit
+	const toggleSkin = () => includeSkin = !includeSkin
+
+	function caesarCipher(str) {
+		const shift = 42
+		const alphabet = 'abcdefghijklmnopqrstuvwxyz'
+		let decodedMessage = ''
+		for (let i = 0; i < str.length; i++) {
+			const char = str[i]
+			if (alphabet.includes(char.toLowerCase())) {
+				const index = alphabet.indexOf(char.toLowerCase())
+				const newIndex = (index + shift) % 26
+				const isUpperCase = char === char.toUpperCase()
+				decodedMessage += isUpperCase
+					? alphabet[newIndex].toUpperCase()
+					: alphabet[newIndex]
+			} else {
+				decodedMessage += char
+			}
+		}
+		return decodedMessage
+	}
 
 	function showSuggestions() {
-		const suggestions = names.map(i => i['filename']).filter((word) =>
-			word.toLowerCase().includes(input.current.value.toLowerCase())
-		)
+		const suggestions = namePool.current
+			.filter((word) => word.toLowerCase().includes(input.current.value.toLowerCase()))
+			.map((word) => word.replace('_Default', '').replace('_', ' '))
 		setSuggestions(suggestions)
 	}
 
@@ -50,7 +74,7 @@ function App() {
 		clearTimeout(deadline.current)
 		setEventEnabled(false)
 
-		loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/unhidden/${shipName}.png`)
+		loadImage(`https://raw.githubusercontent.com/risbi0/al-guess-game-images/main/img/unhidden/${btoa(caesarCipher(shipName))}.png`)
 			.then((image) => {
 				img.current.src = image.src
 				setIsCorrectAnswer(isCorrect)
@@ -104,7 +128,7 @@ function App() {
 	function checkAnswer() {
 		const answer = input.current.value
 		if (eventEnabled) {
-			if (answer === shipName) {
+			if (answer === shipName.replace('_Default', '').replace('_', ' ')) {
 				// correct answer
 				setScore((score) => score + 1)
 				displayCorrectAnswer(true)
@@ -115,6 +139,14 @@ function App() {
 		}
   }
 
+	function buildNamePool() {
+		names.forEach((name) => {
+			namePool.current.push(`${name['filename']}_Default`)
+			if (includeRetrofit && name['retrofit']) namePool.current.push(`${name['filename']}_Retrofit`)
+			if (includeSkin && name['skins'].length > 0) namePool.current.push(...name['skins'].map((skin) => `${name['filename']}_${skin}`))
+		})
+	}
+
 	function newGameRound() {
 		setRounds((rounds) => rounds + 1)
 		setIsCorrectAnswer(null)
@@ -122,7 +154,7 @@ function App() {
 		// pick new hidden ship
 		let newShipPicked = false, randShipIndex
 		while (!newShipPicked) {
-			randShipIndex = Math.floor(Math.random() * names.length)
+			randShipIndex = Math.floor(Math.random() * namePool.current.length)
 
 			if (!pickedIndices.includes(randShipIndex)) {
 				setPickedIndices((pickedIndices) => {
@@ -132,7 +164,7 @@ function App() {
 				newShipPicked = true
 			}
 		}
-		setShipName(names[randShipIndex]['filename'])
+		setShipName(namePool.current[randShipIndex])
 	}
 
 	function startGame() {
@@ -147,12 +179,13 @@ function App() {
 		setAvgSpeed(0)
 		setAnswerLog([])
 
+		buildNamePool()
 		newGameRound()
 	}
 
 	useEffect(() => {
 		if (shipName) {
-			loadImage(`https://raw.githubusercontent.com/risbi0/Whos-that-shipgirl/main/img/hidden/${shipName}.png`)
+			loadImage(`https://raw.githubusercontent.com/risbi0/al-guess-game-images/main/img/hidden/${btoa(caesarCipher(shipName))}.png`)
 			.then((image) => {
 				if (img.current) {
 					img.current.src = image.src
@@ -211,9 +244,23 @@ function App() {
 				<div id='container'>
 					<p>Guess the Azur Lane character by its silhouette!</p>
 					<p>10 rounds with each round having a 10 second limit.</p>
-					<p>No retrofit skins and skins in general.</p>
-					<p>Some characters have nicknames which are also correct.</p>
-					<p>Also includes sirens.</p>
+					<p>Select which types of skins to add to default skins</p>
+					<div id='switches'>
+						<div className='switch-container'>
+							<div>Retrofit</div>
+							<label className='switch'>
+								<input type='checkbox'onClick={toggleRetrofit}></input>
+								<span className='slider'></span>
+							</label>
+						</div>
+						<div className='switch-container'>
+							<div>Skin</div>
+							<label className='switch'>
+								<input type='checkbox'onClick={toggleSkin}></input>
+								<span className='slider'></span>
+							</label>
+						</div>
+					</div>
 				</div>
 				<button onClick={startGame}>START</button>
 			</>
@@ -231,7 +278,7 @@ function App() {
 								? 'wrong-ans-glow'
 								: ''
 					}>
-						{isCorrectAnswer === null ? `Round ${rounds} of 10` : shipName}
+						{isCorrectAnswer === null ? `Round ${rounds} of 10` : shipName.replace('_Default', '').replace('_', ' ')}
 				</div>
 				<div id='container'>
 					<img ref={img} src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='/>
@@ -281,7 +328,7 @@ function App() {
 						{answerLog.map((answer, index) => (
 							<tr key={index}>
 								<td>{answer.isCorrect ? '✅' : '❌'}</td>
-								<td>{answer.name}</td>
+								<td>{answer.name.replace('_Default', '').replace('_', ' ')}</td>
 								<td style={answer.isCorrect ? {textAlign: 'center'} : {}}>
 									{answer.isCorrect ? `${answer.speed}s` : answer.answer}
 								</td>
