@@ -8,6 +8,7 @@ function App() {
 	const input = useRef()
 	const loopProgress = useRef() // for animating progress bar
 	const deadline = useRef() // deadline for each round
+	const ogInput = useRef('')
 	const optionsParent = useRef()
 
 	const namePool = useRef([])
@@ -91,8 +92,9 @@ function App() {
 
 	function highlightOptions(e) {
 		if (e.key === 'ArrowDown') {
-      e.preventDefault()
+			e.preventDefault()
       setOptionIndex((index) => {
+				if (index === -1) ogInput.current = input.current.value
 				let indexOut
 				if (index < suggestions.length - 1) {
 					indexOut = index + 1
@@ -103,7 +105,7 @@ function App() {
 				return indexOut
 			})
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
+			e.preventDefault()
       setOptionIndex((index) => {
 				let indexOut
 				if (index > 0) {
@@ -111,7 +113,7 @@ function App() {
 				}  else {
 					indexOut = -1
 				}
-				input.current.value = suggestions[indexOut]
+				input.current.value = index !== 0 ? suggestions[indexOut] : ogInput.current
 				return indexOut
 			})
     } else if (e.key === 'Enter' && optionIndex !== -1) {
