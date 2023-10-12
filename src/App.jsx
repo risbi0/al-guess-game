@@ -37,21 +37,21 @@ function App() {
 	function caesarCipher(str) {
 		const shift = 42
 		const alphabet = 'abcdefghijklmnopqrstuvwxyz'
-		let decodedMessage = ''
+		let output = ''
 		for (let i = 0; i < str.length; i++) {
 			const char = str[i]
 			if (alphabet.includes(char.toLowerCase())) {
 				const index = alphabet.indexOf(char.toLowerCase())
 				const newIndex = (index + shift) % 26
 				const isUpperCase = char === char.toUpperCase()
-				decodedMessage += isUpperCase
+				output += isUpperCase
 					? alphabet[newIndex].toUpperCase()
 					: alphabet[newIndex]
 			} else {
-				decodedMessage += char
+				output += char
 			}
 		}
-		return decodedMessage
+		return output
 	}
 
 	function showSuggestions() {
