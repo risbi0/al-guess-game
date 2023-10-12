@@ -10,10 +10,10 @@ function App() {
 	const deadline = useRef() // deadline for each round
 	const ogInput = useRef('')
 	const optionsParent = useRef()
-
 	const namePool = useRef([])
-	let includeRetrofit = false, includeSkin = false
 
+	const [includeRetrofit, setIncludeRetrofit] = useState(false)
+	const [includeSkin, setIncludeSkin] = useState(false)
 	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 	const [shipName, setShipName] = useState('') // main ship name
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
@@ -31,8 +31,8 @@ function App() {
 
 	const delay = () => new Promise(resolve => setTimeout(resolve, 1000))
 	const setInputText = (e) => input.current.value = e.target.textContent
-	const toggleRetrofit = () => includeRetrofit = !includeRetrofit
-	const toggleSkin = () => includeSkin = !includeSkin
+	const toggleRetrofit = () => setIncludeRetrofit((includeRetrofit) => !includeRetrofit)
+	const toggleSkin = () => setIncludeSkin((includeSkin) => !includeSkin)
 
 	function caesarCipher(str) {
 		const shift = 42
@@ -244,27 +244,26 @@ function App() {
 			<>
 				<div id='answer-display'>Azur Lane Guessing Game</div>
 				<div id='container'>
-					<p>Guess the Azur Lane character by its silhouette!</p>
-					<p>10 rounds with each round having a 10 second limit.</p>
+					<p>Normal Mode - 10 rounds, 10 sec. time limit/round</p>
 					<p>Select which types of skins to add to default skins</p>
 					<div id='switches'>
 						<div className='switch-container'>
 							<div>Retrofit</div>
 							<label className='switch'>
-								<input type='checkbox'onClick={toggleRetrofit}></input>
+								<input type='checkbox' onChange={toggleRetrofit} checked={includeRetrofit}></input>
 								<span className='slider'></span>
 							</label>
 						</div>
 						<div className='switch-container'>
 							<div>Skin</div>
 							<label className='switch'>
-								<input type='checkbox'onClick={toggleSkin}></input>
+								<input type='checkbox' onChange={toggleSkin} checked={includeSkin}></input>
 								<span className='slider'></span>
 							</label>
 						</div>
 					</div>
+					<button onClick={startGame}>NORMAL MODE</button>
 				</div>
-				<button onClick={startGame}>START</button>
 			</>
 		}
 		{
@@ -292,7 +291,9 @@ function App() {
 						onInput={showSuggestions}
 						onKeyDown={highlightOptions}
 						placeholder='Who?'
-						maxLength='30'>
+						maxLength='30'
+						spellCheck='false'
+					>
 					</input>
 					{suggestions.length > 0 && (
 						<div id='suggestions' ref={optionsParent}>
@@ -338,7 +339,10 @@ function App() {
 						))}
 					</tbody>
 				</table>
-				<button onClick={startGame}>PLAY AGAIN</button>
+				<div id='end-game-btns'>
+					<button onClick={startGame}>PLAY AGAIN</button>
+					<button onClick={()=>{setGameRunning(false);setGameEnd(false)}}>HOME</button>
+				</div>
 			</>
 		}
     </>

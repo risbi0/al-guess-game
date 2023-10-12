@@ -6,6 +6,7 @@
 
 * {
 	font-family: Arial, Helvetica, sans-serif;
+	user-select: none;
 }
 
 body {
@@ -98,6 +99,7 @@ button:hover {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	align-items: center;
 	box-sizing: border-box;
 	text-align: center;
 	height: 600px;
@@ -123,6 +125,8 @@ button:hover {
 #switches {
 	display: flex;
 	justify-content: space-evenly;
+	width: 80%;
+	margin-bottom: 30px;
 }
 
 .switch-container div {
@@ -218,6 +222,12 @@ input:checked + .slider:before {
 #score p {
 	text-align: center;
 	color: var(--black-f);
+}
+
+#end-game-btns {
+	display: flex;
+	justify-content: space-around;
+	width: 300px;
 }
 
 table {
