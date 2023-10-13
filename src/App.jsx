@@ -243,7 +243,8 @@ function App() {
 			!gameRunning && !gameEnd &&
 			<>
 				<div id='answer-display'>Azur Lane Guessing Game</div>
-				<div id='container'>
+				<div id='container' className='menu-styling'>
+					<p>Characters up to <a href="https://azurlane.koumakan.jp/wiki/Effulgence_Before_Eclipse">Effulgence Before Eclipse</a></p>
 					<p>Normal Mode - 10 rounds, 10 sec. time limit/round</p>
 					<p>Select which types of skins to add to default skins</p>
 					<div id='switches'>
