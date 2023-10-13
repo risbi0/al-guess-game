@@ -19,7 +19,7 @@ function App() {
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
 	const [gameRunning, setGameRunning] = useState()
 	const [gameEnd, setGameEnd] = useState()
-  const [pickedIndices, setPickedIndices] = useState([]) // stores indices of shown ships
+	const [pickedIndices, setPickedIndices] = useState([]) // stores indices of shown ships
 	const [rounds, setRounds] = useState()
 	const [progress, setProgress] = useState(0) // progress bar
 	const [suggestions, setSuggestions] = useState([])
