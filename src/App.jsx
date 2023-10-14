@@ -11,19 +11,23 @@ function App() {
 	const ogInput = useRef('')
 	const optionsParent = useRef()
 	const namePool = useRef([])
+	const pickedIndices = useRef([]) // stores indices of shown ships
 
 	const [includeRetrofit, setIncludeRetrofit] = useState(false)
 	const [includeSkin, setIncludeSkin] = useState(false)
+	const [normalMode, setNormalMode] = useState()
+	const [endlessMode, setEndlessMode] = useState()
 	const [eventEnabled, setEventEnabled] = useState(true) // disable event during answer display
 	const [shipName, setShipName] = useState('') // main ship name
 	const [isCorrectAnswer, setIsCorrectAnswer] = useState(null)
 	const [gameRunning, setGameRunning] = useState()
 	const [gameEnd, setGameEnd] = useState()
-	const [pickedIndices, setPickedIndices] = useState([]) // stores indices of shown ships
 	const [rounds, setRounds] = useState()
 	const [progress, setProgress] = useState(0) // progress bar
 	const [suggestions, setSuggestions] = useState([])
 	const [optionIndex, setOptionIndex] = useState(-1) // for highlighting options
+	const [strikes, setStrikes] = useState(0)
+	const [endRound, setEndRound] = useState(false)
 
 	const [score, setScore] = useState()
 	const [avgSpeed, setAvgSpeed] = useState()
@@ -86,7 +90,13 @@ function App() {
 				input.current.value = ''
 				setEventEnabled(true)
 				setProgress(0)
-				newGameRound()
+				if (endlessMode && !isCorrect) setStrikes((wrongAnswers) => wrongAnswers + 1)
+				if (endlessMode && pickedIndices.current.length === namePool.current.length) {
+					setEndRound(true)
+				} else {
+					setRounds((rounds) => rounds + 1)
+					newGameRound()
+				}
 			})
 	}
 
@@ -142,6 +152,7 @@ function App() {
   }
 
 	function buildNamePool() {
+		namePool.current = []
 		names.forEach((name) => {
 			namePool.current.push(`${name['filename']}_Default`)
 			if (includeRetrofit && name['retrofit']) namePool.current.push(`${name['filename']}_Retrofit`)
@@ -150,7 +161,6 @@ function App() {
 	}
 
 	function newGameRound() {
-		setRounds((rounds) => rounds + 1)
 		setIsCorrectAnswer(null)
 
 		// pick new hidden ship
@@ -158,29 +168,29 @@ function App() {
 		while (!newShipPicked) {
 			randShipIndex = Math.floor(Math.random() * namePool.current.length)
 
-			if (!pickedIndices.includes(randShipIndex)) {
-				setPickedIndices((pickedIndices) => {
-					pickedIndices.push(randShipIndex)
-					return pickedIndices
-				})
+			if (!pickedIndices.current.includes(randShipIndex)) {
+				pickedIndices.current.push(randShipIndex)
 				newShipPicked = true
 			}
 		}
 		setShipName(namePool.current[randShipIndex])
 	}
 
-	function startGame() {
+	function startGame(startNormal, startEndless) {
+		setNormalMode(startNormal)
+		setEndlessMode(startEndless)
 		// reinit states
+		pickedIndices.current = []
 		setGameRunning(true)
 		setGameEnd(false)
-		setRounds(0)
-		setPickedIndices([])
+		setEndRound(false)
+		setRounds(1)
+		setStrikes(0)
 		setOptionIndex(-1)
 
 		setScore(0)
 		setAvgSpeed(0)
 		setAnswerLog([])
-
 		buildNamePool()
 		newGameRound()
 	}
@@ -224,8 +234,14 @@ function App() {
 				return answerLog
 			})
 		}
-		// end round
-		if (rounds === 11) {
+	}, [isCorrectAnswer])
+
+	useEffect(() => {
+		if ((normalMode && rounds > 10) || (endlessMode && strikes === 5)) setEndRound(true)
+	}, [rounds, strikes])
+
+	useEffect(() => {
+		if (endRound) {
 			clearInterval(loopProgress.current)
 			clearTimeout(deadline.current)
 			setGameRunning(false)
@@ -233,9 +249,9 @@ function App() {
 			// calculate avg speed
 			const getAllSpeed = answerLog.map(obj => obj['speed'])
 			const addAllSpeed = getAllSpeed.reduce((total, current) => total + current)
-			setAvgSpeed(Math.round(addAllSpeed * 10) / 100)
+			setAvgSpeed(Math.round(addAllSpeed / (rounds - 1) * 100) / 100)
 		}
-	}, [rounds, isCorrectAnswer])
+	}, [endRound])
 
   return (
     <>
@@ -245,7 +261,8 @@ function App() {
 				<div id='answer-display'>Azur Lane Guessing Game</div>
 				<div id='container' className='menu-styling'>
 					<p>Characters up to <a href="https://azurlane.koumakan.jp/wiki/Effulgence_Before_Eclipse">Effulgence Before Eclipse</a></p>
-					<p>Normal Mode - 10 rounds, 10 sec. time limit/round</p>
+					<p>Normal Mode - 10 rounds, 10 sec. time limit</p>
+					<p>Endless Mode - play until 5 wrong answers/unanswered rounds, 10 sec. time limit</p>
 					<p>Select which types of skins to add to default skins</p>
 					<div id='switches'>
 						<div className='switch-container'>
@@ -263,7 +280,10 @@ function App() {
 							</label>
 						</div>
 					</div>
-					<button onClick={startGame}>NORMAL MODE</button>
+					<div id='modes'>
+						<button onClick={() => startGame(true, false)}>NORMAL MODE</button>
+						<button onClick={() => startGame(false, true)}>ENDLESS MODE</button>
+					</div>
 				</div>
 			</>
 		}
@@ -279,8 +299,15 @@ function App() {
 							: isCorrectAnswer !== null && !isCorrectAnswer
 								? 'wrong-ans-glow'
 								: ''
-					}>
-						{isCorrectAnswer === null ? `Round ${rounds} of 10` : shipName.replace('_Default', '').replace('_', ' ')}
+					}
+				>
+					{
+						isCorrectAnswer === null
+							? normalMode
+								? `Round ${rounds} of 10`
+								: `Round ${rounds} (${strikes} / 5 strikes)`
+							: shipName.replace('_Default', '').replace('_', ' ')
+					}
 				</div>
 				<div id='container'>
 					<img ref={img} src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='/>
@@ -317,7 +344,12 @@ function App() {
 			!gameRunning && gameEnd &&
 			<>
 				<div id='score'>
-					<p>Score: {score} / 10</p>
+					{
+						endlessMode && pickedIndices.current.length === namePool.current.length
+							? <p>No more characters remaining</p>
+							: null
+					}
+					<p>Score: {score} / {normalMode ? '10' : rounds - 1}</p>
 					<p>Avg. Answer Speed: {avgSpeed}s</p>
 				</div>
 				<table>
@@ -341,7 +373,7 @@ function App() {
 					</tbody>
 				</table>
 				<div id='end-game-btns'>
-					<button onClick={startGame}>PLAY AGAIN</button>
+					<button onClick={() => startGame(normalMode, endlessMode)}>PLAY AGAIN</button>
 					<button onClick={()=>{setGameRunning(false);setGameEnd(false)}}>HOME</button>
 				</div>
 			</>

@@ -126,6 +126,7 @@ a {
 
 .menu-styling {
 	text-align: center;
+	line-height: 1.25;
 	color: var(--black-f);
 	width: auto !important;
 	height: auto !important;
@@ -182,6 +183,19 @@ input:checked + .slider {
 }
 input:checked + .slider:before {
   transform: translateX(26px);
+}
+
+#modes {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 175px;
+}
+#modes button {
+	height: auto;
+	width: 150px;
+	padding: 10px;
+	font-size: 24px;
 }
 
 #progress-bar {
