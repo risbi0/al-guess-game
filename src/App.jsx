@@ -111,7 +111,7 @@ function App() {
 				}  else {
 					indexOut = index
 				}
-				input.current.value = suggestions[indexOut]
+				input.current.value = suggestions.length > 0 ? suggestions[indexOut] : ogInput.current
 				return indexOut
 			})
     } else if (e.key === 'ArrowUp') {
@@ -123,7 +123,7 @@ function App() {
 				}  else {
 					indexOut = -1
 				}
-				input.current.value = index !== 0 ? suggestions[indexOut] : ogInput.current
+				input.current.value = index > 0 ? suggestions[indexOut] : ogInput.current
 				return indexOut
 			})
     } else if (e.key === 'Enter' && optionIndex !== -1) {
