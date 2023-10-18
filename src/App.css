@@ -79,16 +79,16 @@ a {
 	justify-content: center;
 	align-items: center;
 	box-sizing: border-box;
-	width: 600px;
+	width: 55vh;
+	max-width: 600px;
 	height: min-content;
-	margin-top: 35px;
-	margin-bottom: 20px;
+	margin-top: 20px;
 	padding: 10px;
 	background-color: var(--white-bg);
 	color: var(--black-f);
 	border-radius: 5px;
 	text-align: center;
-	font-size: 32px;
+	font-size: calc(3vh);
 	font-weight: bold;
 }
 
@@ -105,8 +105,10 @@ a {
 	justify-content: center;
 	align-items: center;
 	box-sizing: border-box;
-	height: 600px;
-	width: 600px;
+	height: 55vh;
+	width: 55vh;
+	max-height: 600px;
+	max-width: 600px;
 	margin: 20px auto;
 	padding: 15px;
 	border-radius: 5px;
@@ -207,7 +209,7 @@ input:checked + .slider:before {
 }
 
 #suggestions {
-	max-height: 200px;
+	max-height: 120px;
 	width: 250px;
 	background-color: var(--white-bg);
 	color: var(--black-f);
@@ -215,7 +217,6 @@ input:checked + .slider:before {
 	font-size: 14px;
 	font-weight: 500;
 	overflow-y: auto;
-	margin-bottom: 50px;
 }
 
 #suggestions div {
@@ -252,6 +253,7 @@ input:checked + .slider:before {
 	display: flex;
 	justify-content: space-around;
 	width: 300px;
+	margin-bottom: 50px;
 }
 
 table {
