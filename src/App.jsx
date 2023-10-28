@@ -6,7 +6,7 @@ import './App.css'
 function App() {
 	const img = useRef()
 	const input = useRef()
-	const loopProgress = useRef() // for animating progress bar
+	const timer = useRef()
 	const deadline = useRef() // deadline for each round
 	const ogInput = useRef('')
 	const optionsParent = useRef()
@@ -75,7 +75,7 @@ function App() {
 	}
 
 	function displayCorrectAnswer(isCorrect) {
-		clearInterval(loopProgress.current)
+		cancelAnimationFrame(timer.current)
 		clearTimeout(deadline.current)
 		setEventEnabled(false)
 
@@ -151,6 +151,26 @@ function App() {
 		}
   }
 
+	function startTimer() {
+    return new Promise((resolve) => {
+			let startTime = null;
+			function step(timestamp) {
+				if (!startTime) startTime = timestamp
+				const elapsed = timestamp - startTime
+				const updatedProgress = Math.min(1, elapsed / 10000) * 100
+
+				setProgress(updatedProgress)
+
+				if (updatedProgress < 100) {
+					timer.current = requestAnimationFrame(step)
+				} else {
+					resolve()
+				}
+			}
+			timer.current = requestAnimationFrame(step)
+    })
+	}
+
 	function buildNamePool() {
 		namePool.current = []
 		names.forEach((name) => {
@@ -202,20 +222,10 @@ function App() {
 				if (img.current) {
 					img.current.src = image.src
 
-					const roundDuration = 10000
-					const interval = 10
-					const totalSteps = roundDuration / interval
-
-					loopProgress.current = setInterval(() => {
-						if (progress < 100) {
-							setProgress((prevProgress) => prevProgress + (100 / totalSteps))
-						}
-					}, interval)
-
-					deadline.current = setTimeout(() => {
+					startTimer().then(() => {
 						// not answered
 						displayCorrectAnswer(false)
-					}, roundDuration)
+					})
 				}
 			})
 		}
@@ -242,7 +252,7 @@ function App() {
 
 	useEffect(() => {
 		if (endRound) {
-			clearInterval(loopProgress.current)
+			cancelAnimationFrame(timer.current)
 			clearTimeout(deadline.current)
 			setGameRunning(false)
 			setGameEnd(true)
